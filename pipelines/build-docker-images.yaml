@@ -76,7 +76,7 @@ jobs:
       - put: output-alpine
         params:
           image: image/image.tar
-          version: ((rust.version))-alpine
+          additional_tags: stable-alpine/tag
 
   - name: slim
     build_log_retention:
@@ -113,4 +113,4 @@ jobs:
       - put: output-slim
         params:
           image: image/image.tar
-          version: ((rust.version))-slim
+          additional_tags: stable-slim/tag
