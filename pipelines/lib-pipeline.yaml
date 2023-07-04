@@ -81,3 +81,28 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+  - name: msrv
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((lib.name))
+          trigger: true
+          passed:
+            - stable
+
+      - task: check-msrv
+        image: nightly
+        tags:
+          - internal
+        file: ci/tasks/msrv.yaml
+        input_mapping:
+          repo: ((lib.name))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))

@@ -1,0 +1,32 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: foresterre/cargo-msrv
+
+inputs:
+  - name: repo
+
+params:
+  CARGO_REGISTRIES_ANCALAGON_INDEX:
+  CARGO_REGISTRIES_ANCALAGON_TOKEN:
+
+caches:
+  # yeah, I'm not sure how I feel about caching the registry like this,
+  # but concourse only allows relative paths instead of absolute ones
+  - path: ../../../usr/local/cargo/registry
+
+  # attempt to cache the toolchains
+  - path: ../../../user/local/rustup/toolchains
+
+  # cache the target folder to speed up builds
+  - path: repo/target
+
+run:
+  dir: repo
+  path: /bin/sh
+  args:
+    - "-c"
+    - |
+      set -e
+      cargo msrv verify
