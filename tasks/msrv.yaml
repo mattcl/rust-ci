@@ -17,7 +17,8 @@ caches:
   - path: ../../../usr/local/cargo/registry
 
   # attempt to cache the toolchains
-  - path: ../../../usr/local/rustup/toolchains
+  # we apparently can't do this because it ends up as a cross-device link
+  # - path: ../../../usr/local/rustup/toolchains
 
   # cache the target folder to speed up builds
   - path: repo/target
