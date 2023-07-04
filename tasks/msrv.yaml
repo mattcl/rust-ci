@@ -6,6 +6,7 @@ image_resource:
     tag: "sha-78de76f"
 
 inputs:
+  - name: ci
   - name: repo
 
 params:
@@ -26,9 +27,4 @@ caches:
 
 run:
   dir: repo
-  path: /bin/sh
-  args:
-    - "-c"
-    - |
-      set -e
-      cargo msrv verify
+  path: ../ci/scripts/check-msrv.sh
