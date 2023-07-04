@@ -1,0 +1,114 @@
+resources:
+  - name: ci
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/mattcl/rust-ci.git
+      ignore_paths:
+        - 'README.md'
+
+  - name: stable-slim
+    type: registry-image
+    source:
+      repository: rust
+      tag: ((rust.version))-slim
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: stable-alpine
+    type: registry-image
+    source:
+      repository: rust
+      tag: ((rust.version))-alpine
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: output-alpine
+    type: registry-image
+    source:
+      repository: mattcl/ci-rust-alpine
+      tag: ((rust.version))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: output-slim
+    type: registry-image
+    source:
+      repository: mattcl/ci-rust-slim
+      tag: ((rust.version))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+jobs:
+  - name: alpine
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: stable-alpine
+          trigger: true
+          params:
+            skip_download: true
+
+
+      - task: test
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: ci
+          outputs:
+            - name: image
+          params:
+            CONTEXT: ci/docker
+            DOCKERFILE: ci/docker/alpine.Dockerfile
+          run:
+            path: build
+
+      - put: output-alpine
+        params:
+          image: image/image.tar
+
+  - name: slim
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: stable-slim
+          trigger: true
+          params:
+            skip_download: true
+
+      - task: test
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: ci
+          outputs:
+            - name: image
+          params:
+            CONTEXT: ci/docker
+            DOCKERFILE: ci/docker/slim.Dockerfile
+          run:
+            path: build
+
+      - put: output-slim
+        params:
+          image: image/image.tar
