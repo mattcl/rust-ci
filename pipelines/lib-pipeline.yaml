@@ -56,6 +56,8 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((cargo.extra-test-flags))"
 
   - name: nightly
     build_log_retention:
@@ -81,6 +83,8 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((cargo.extra-test-flags))"
 
   - name: msrv
     build_log_retention:
