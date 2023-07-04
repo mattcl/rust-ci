@@ -3,6 +3,7 @@ image_resource:
   type: registry-image
   source:
     repository: foresterre/cargo-msrv
+    tag: "sha-78de76f"
 
 inputs:
   - name: repo
