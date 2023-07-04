@@ -7,19 +7,19 @@ resources:
       ignore_paths:
         - 'README.md'
 
-  - name: stable-slim
-    type: registry-image
-    source:
-      repository: rust
-      tag: ((rust.version))-slim
-      username: ((dockerhub.user))
-      password: ((dockerhub.token))
-
   - name: stable-alpine
     type: registry-image
     source:
       repository: rust
       tag: ((rust.version))-alpine
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: stable-slim
+    type: registry-image
+    source:
+      repository: rust
+      tag: ((rust.version))-slim
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
@@ -55,7 +55,7 @@ jobs:
             skip_download: true
 
 
-      - task: test
+      - task: build
         privileged: true
         config:
           platform: linux
@@ -76,6 +76,7 @@ jobs:
       - put: output-alpine
         params:
           image: image/image.tar
+          additional_tags: stable-alpine/tag
 
   - name: slim
     build_log_retention:
@@ -91,7 +92,7 @@ jobs:
           params:
             skip_download: true
 
-      - task: test
+      - task: build
         privileged: true
         config:
           platform: linux
@@ -112,3 +113,4 @@ jobs:
       - put: output-slim
         params:
           image: image/image.tar
+          additional_tags: stable-slim/tag
