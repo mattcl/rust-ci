@@ -1,6 +1,7 @@
 platform: linux
 
 inputs:
+  - name: ci
   - name: repo
 
 params:
@@ -19,10 +20,4 @@ caches:
 
 run:
   dir: repo
-  path: /bin/sh
-  args:
-    - "-c"
-    - |
-      set -ex
-      cargo build --verbose ${EXTRA_CARGO_BUILD_FLAGS}
-      cargo test --verbose ${EXTRA_CARGO_TEST_FLAGS}
+  path: ../ci/lint-and-test.sh
