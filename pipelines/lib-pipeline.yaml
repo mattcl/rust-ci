@@ -79,5 +79,5 @@ jobs:
         input_mapping:
           repo: ((lib.name))
         params:
-          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon.registry-index))
-          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon.registry-token))
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
