@@ -17,7 +17,7 @@ resources:
 
   - name: nightly
     type: registry-image
-    icon: dockerhub
+    icon: docker
     source:
       repository: rustlang/rust
       tag: nightly-slim
@@ -26,7 +26,7 @@ resources:
 
   - name: slim
     type: registry-image
-    icon: dockerhub
+    icon: docker
     source:
       repository: mattcl/ci-rust-slim
       tag: ((rust.version))
@@ -35,7 +35,7 @@ resources:
 
   - name: alpine
     type: registry-image
-    icon: dockerhub
+    icon: docker
     source:
       repository: mattcl/ci-rust-alpine
       tag: ((rust.version))

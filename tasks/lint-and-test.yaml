@@ -20,4 +20,4 @@ caches:
 
 run:
   dir: repo
-  path: ../ci/lint-and-test.sh
+  path: ../ci/scripts/lint-and-test.sh
