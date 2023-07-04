@@ -23,7 +23,7 @@ resources:
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
-  - name: stable
+  - name: stable-slim
     type: registry-image
     source:
       repository: rust
@@ -31,8 +31,16 @@ resources:
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
+  - name: stable-alpine
+    type: registry-image
+    source:
+      repository: rust
+      tag: ((rust.version))-alpine
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
 jobs:
-  - name: stable
+  - name: stable-slim
     build_log_retention:
       days: 2
       builds: 20
@@ -43,11 +51,11 @@ jobs:
           trigger: false
         - get: ((lib.name))
           trigger: true
-        - get: stable
+        - get: stable-slim
           trigger: true
 
       - task: test
-        image: stable
+        image: stable-slim
         tags:
           - internal
         file: ci/tasks/lint-and-test.yaml
@@ -56,8 +64,35 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
-          EXTRA_CARGO_BUILD_FLAGS: "((cargo.extra-build-flags))"
-          EXTRA_CARGO_TEST_FLAGS: "((cargo.extra-test-flags))"
+          EXTRA_CARGO_BUILD_FLAGS: "((slim.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((slim.cargo.extra-test-flags))"
+
+  - name: stable-alpine
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((lib.name))
+          trigger: true
+        - get: stable-alpine
+          trigger: true
+
+      - task: test
+        image: stable-alpine
+        tags:
+          - internal
+        file: ci/tasks/lint-and-test.yaml
+        input_mapping:
+          repo: ((lib.name))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((alpine.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((alpine.cargo.extra-test-flags))"
 
   - name: nightly
     build_log_retention:
@@ -98,7 +133,7 @@ jobs:
         - get: ((lib.name))
           trigger: true
           passed:
-            - stable
+            - stable-slim
 
       - task: check-msrv
         tags:
