@@ -5,7 +5,7 @@ set -ex
 cargo fmt --check
 
 # fail on clippy warnings
-cargo clippy -Dwarnings
+cargo clippy -- -Dwarnings
 
 # ensure we can build
 cargo build --verbose ${EXTRA_CARGO_BUILD_FLAGS}
