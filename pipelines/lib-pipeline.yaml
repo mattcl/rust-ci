@@ -97,7 +97,6 @@ jobs:
             - stable
 
       - task: check-msrv
-        image: nightly
         tags:
           - internal
         file: ci/tasks/msrv.yaml
