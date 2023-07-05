@@ -11,8 +11,12 @@ set -ex
 
 rust_version=$(grep 'rust-version' Cargo.toml | cut -d '"' -f 2)
 
+if [ "$UPDATE_DEPS" -eq 1 ]; then
+    cargo update
+fi
+
 # just a basic check
 cargo msrv --min=${rust_version} --max=${rust_version}
 
 # verify we can run tests at this version
-cargo msrv --min=${rust_version} --max=${rust_version} -- cargo test --all-targets
+cargo msrv --min=${rust_version} --max=${rust_version} -- cargo test --locked --all-targets

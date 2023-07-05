@@ -189,7 +189,7 @@ jobs:
       params:
         alert_type: errored
 
-  - name: msrv
+  - name: max-vers-msrv
     build_log_retention:
       days: 2
       builds: 20
@@ -209,10 +209,67 @@ jobs:
           - internal
         file: ci/tasks/msrv.yaml
         input_mapping:
+          repo: repo
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
+
+  - name: min-vers-msrv
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((lib.name))
+          trigger: true
+          passed:
+            - nightly
+        - get: nightly
+          trigger: false
+          passed:
+            - nightly
+
+      - task: find-min-versions
+        image: nightly
+        tags:
+          - internal
+        file: ci/tasks/min-versions.yaml
+        input_mapping:
           repo: ((lib.name))
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+      - task: check-msrv
+        tags:
+          - internal
+        file: ci/tasks/msrv.yaml
+        input_mapping:
+          repo: repo
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          UPDATE_DEPS: "0"
 
     on_success:
       put: notify

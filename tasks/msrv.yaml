@@ -12,6 +12,9 @@ inputs:
 params:
   CARGO_REGISTRIES_ANCALAGON_INDEX:
   CARGO_REGISTRIES_ANCALAGON_TOKEN:
+  # by default we will update the deps to check msrv against the max supported
+  # versions
+  UPDATE_DEPS: "1"
 
 caches:
   # yeah, I'm not sure how I feel about caching the registry like this,
