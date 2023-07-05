@@ -1,3 +1,9 @@
+resource_types:
+  - name: slack-alert
+    type: registry-image
+    source:
+      repository: arbourd/concourse-slack-alert-resource
+
 resources:
   - name: ci
     type: git
@@ -39,6 +45,13 @@ resources:
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
+  - name: notify
+    type: slack-alert
+    source:
+      url: ((slack.webhook-url))
+      channel: ((slack.channel))
+      concourse_url: ((server.url))
+
 jobs:
   - name: alpine
     build_log_retention:
@@ -78,6 +91,23 @@ jobs:
           image: image/image.tar
           additional_tags: stable-alpine/tag
 
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
+
   - name: slim
     build_log_retention:
       days: 2
@@ -114,3 +144,20 @@ jobs:
         params:
           image: image/image.tar
           additional_tags: stable-slim/tag
+
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
