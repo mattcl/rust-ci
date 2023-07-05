@@ -1,3 +1,9 @@
+resource_types:
+  - name: slack-alert
+    type: registry-image
+    source:
+      repository: arbourd/concourse-slack-alert-resource
+
 resources:
   - name: ci
     type: git
@@ -42,6 +48,13 @@ resources:
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
+  - name: notify
+    type: slack-alert
+    source:
+      url: ((slack.webhook-url))
+      channel: ((slack.channel))
+      concourse_url: ((server.url))
+
 jobs:
   - name: stable-alpine
     build_log_retention:
@@ -70,6 +83,23 @@ jobs:
           EXTRA_CARGO_BUILD_FLAGS: "((alpine.cargo.extra-build-flags))"
           EXTRA_CARGO_TEST_FLAGS: "((alpine.cargo.extra-test-flags))"
 
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
+
   - name: stable-slim
     build_log_retention:
       days: 2
@@ -96,6 +126,23 @@ jobs:
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
           EXTRA_CARGO_BUILD_FLAGS: "((slim.cargo.extra-build-flags))"
           EXTRA_CARGO_TEST_FLAGS: "((slim.cargo.extra-test-flags))"
+
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
 
   - name: nightly
     build_log_retention:
@@ -125,6 +172,23 @@ jobs:
           EXTRA_CARGO_TEST_FLAGS: "((nightly.cargo.extra-test-flags))"
           LINT: "0"
 
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
+
   - name: msrv
     build_log_retention:
       days: 2
@@ -137,6 +201,7 @@ jobs:
         - get: ((lib.name))
           trigger: true
           passed:
+            - stable-alpine
             - stable-slim
 
       - task: check-msrv
@@ -148,3 +213,20 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
