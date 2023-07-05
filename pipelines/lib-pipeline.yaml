@@ -121,8 +121,9 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
-          EXTRA_CARGO_BUILD_FLAGS: "((cargo.extra-build-flags))"
-          EXTRA_CARGO_TEST_FLAGS: "((cargo.extra-test-flags))"
+          EXTRA_CARGO_BUILD_FLAGS: "((nightly.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((nightly.cargo.extra-test-flags))"
+          LINT: "0"
 
   - name: msrv
     build_log_retention:

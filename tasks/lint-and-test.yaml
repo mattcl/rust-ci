@@ -9,6 +9,7 @@ params:
   CARGO_REGISTRIES_ANCALAGON_TOKEN:
   EXTRA_CARGO_BUILD_FLAGS: ""
   EXTRA_CARGO_TEST_FLAGS: ""
+  LINT: "1"
 
 caches:
   # yeah, I'm not sure how I feel about caching the registry like this,
