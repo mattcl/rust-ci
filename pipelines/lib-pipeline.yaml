@@ -264,8 +264,6 @@ jobs:
         file: ci/tasks/min-versions.yaml
         input_mapping:
           repo: ((lib.name))
-        vars:
-          script-path: ((msrv.script-path))
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
@@ -276,6 +274,8 @@ jobs:
         file: ci/tasks/msrv.yaml
         input_mapping:
           repo: repo
+        vars:
+          script-path: ((msrv.script-path))
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
