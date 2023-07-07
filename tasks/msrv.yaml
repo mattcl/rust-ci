@@ -30,4 +30,4 @@ caches:
 
 run:
   dir: repo
-  path: ((msrv.script_path))
+  path: ((script-path))
