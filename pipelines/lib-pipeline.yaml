@@ -233,6 +233,8 @@ jobs:
           passed:
             - stable-alpine
         - get: alpine
+          passed:
+            - stable-alpine
           trigger: false
 
       - task: audit-deps
