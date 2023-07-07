@@ -1,0 +1,18 @@
+platform: linux
+
+inputs:
+  - name: ci
+  - name: repo
+
+params:
+  CARGO_REGISTRIES_ANCALAGON_INDEX:
+  CARGO_REGISTRIES_ANCALAGON_TOKEN:
+
+caches:
+  # yeah, I'm not sure how I feel about caching the registry like this,
+  # but concourse only allows relative paths instead of absolute ones
+  - path: ../../../usr/local/cargo/registry
+
+run:
+  dir: repo
+  path: ../ci/scripts/cargo-audit.sh

@@ -4,6 +4,29 @@ resource_types:
     source:
       repository: arbourd/concourse-slack-alert-resource
 
+# common flags we want to set on all jobs
+job-common-settings: &job-common
+  build_log_retention:
+    days: 2
+    builds: 20
+    minimum_succeeded_builds: 1
+  on_success:
+    put: notify
+    params:
+      alert_type: success
+  on_failure:
+    put: notify
+    params:
+      alert_type: failed
+  on_abort:
+    put: notify
+    params:
+      alert_type: aborted
+  on_error:
+    put: notify
+    params:
+      alert_type: errored
+
 resources:
   - name: ci
     type: git
@@ -13,6 +36,7 @@ resources:
       ignore_paths:
         - 'README.md'
 
+  # the user-specified repo under test
   - name: ((lib.name))
     type: git
     icon: github
@@ -57,10 +81,7 @@ resources:
 
 jobs:
   - name: stable-alpine
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
+    <<: *job-common
     plan:
       - in_parallel:
         - get: ci
@@ -85,28 +106,8 @@ jobs:
           EXTRA_CARGO_BUILD_FLAGS: "((alpine.cargo.extra-build-flags))"
           EXTRA_CARGO_TEST_FLAGS: "((alpine.cargo.extra-test-flags))"
 
-    on_success:
-      put: notify
-      params:
-        alert_type: success
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-    on_abort:
-      put: notify
-      params:
-        alert_type: aborted
-    on_error:
-      put: notify
-      params:
-        alert_type: errored
-
   - name: stable-slim
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
+    <<: *job-common
     plan:
       - in_parallel:
         - get: ci
@@ -131,28 +132,8 @@ jobs:
           EXTRA_CARGO_BUILD_FLAGS: "((slim.cargo.extra-build-flags))"
           EXTRA_CARGO_TEST_FLAGS: "((slim.cargo.extra-test-flags))"
 
-    on_success:
-      put: notify
-      params:
-        alert_type: success
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-    on_abort:
-      put: notify
-      params:
-        alert_type: aborted
-    on_error:
-      put: notify
-      params:
-        alert_type: errored
-
   - name: nightly
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
+    <<: *job-common
     plan:
       - in_parallel:
         - get: ci
@@ -178,28 +159,8 @@ jobs:
           EXTRA_CARGO_TEST_FLAGS: "((nightly.cargo.extra-test-flags))"
           LINT: "0"
 
-    on_success:
-      put: notify
-      params:
-        alert_type: success
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-    on_abort:
-      put: notify
-      params:
-        alert_type: aborted
-    on_error:
-      put: notify
-      params:
-        alert_type: errored
-
   - name: max-vers-msrv
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
+    <<: *job-common
     plan:
       - in_parallel:
         - get: ci
@@ -222,28 +183,8 @@ jobs:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
 
-    on_success:
-      put: notify
-      params:
-        alert_type: success
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-    on_abort:
-      put: notify
-      params:
-        alert_type: aborted
-    on_error:
-      put: notify
-      params:
-        alert_type: errored
-
   - name: min-vers-msrv
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
+    <<: *job-common
     plan:
       - in_parallel:
         - get: ci
@@ -281,19 +222,26 @@ jobs:
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
           UPDATE_DEPS: "0"
 
-    on_success:
-      put: notify
-      params:
-        alert_type: success
-    on_failure:
-      put: notify
-      params:
-        alert_type: failed
-    on_abort:
-      put: notify
-      params:
-        alert_type: aborted
-    on_error:
-      put: notify
-      params:
-        alert_type: errored
+  - name: audit-deps
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((lib.name))
+          trigger: true
+          passed:
+            - stable-alpine
+        - get: alpine
+          trigger: false
+
+      - task: audit-deps
+        image: alpine
+        tags:
+          - internal
+        file: ci/tasks/cargo-audit.yaml
+        input_mapping:
+          repo: ((lib.name))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
