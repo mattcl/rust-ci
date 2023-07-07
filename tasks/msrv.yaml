@@ -30,4 +30,4 @@ caches:
 
 run:
   dir: repo
-  path: ../ci/scripts/check-msrv.sh
+  path: ((msrv.script_path))

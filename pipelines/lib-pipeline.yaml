@@ -209,7 +209,7 @@ jobs:
           - internal
         file: ci/tasks/msrv.yaml
         input_mapping:
-          repo: repo
+          repo: ((lib.name))
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
