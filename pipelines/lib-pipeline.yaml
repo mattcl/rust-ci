@@ -222,7 +222,7 @@ jobs:
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
           UPDATE_DEPS: "0"
 
-  - name: audit-deps
+  - name: audit-dependencies
     <<: *job-common
     plan:
       - in_parallel:
