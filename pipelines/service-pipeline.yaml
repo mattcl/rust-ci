@@ -270,6 +270,8 @@ jobs:
             IMAGE_REPO: ((service.image-repo))
         - task: build
           privileged: true
+          tags:
+            - internal
           config:
             platform: linux
             image_resource:
