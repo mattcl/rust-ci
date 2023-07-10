@@ -17,3 +17,4 @@ params:
 
 run:
   path: ci/scripts/extract-version-tags.sh
+  user: root
