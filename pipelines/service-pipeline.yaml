@@ -178,11 +178,8 @@ jobs:
           passed:
             - stable-alpine
             - stable-slim
-            - nightly
         - get: nightly
           trigger: false
-          passed:
-            - nightly
 
       - in_parallel:
         - do:
