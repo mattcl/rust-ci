@@ -1,0 +1,19 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: curlimages/curl
+    tag: "8.1.2"
+
+inputs:
+  - name: ci
+  - name: repo
+
+outputs:
+  - name: image-tags
+
+params:
+  IMAGE_REPO:
+
+run:
+  path: ci/scripts/extract-version-tags.sh
