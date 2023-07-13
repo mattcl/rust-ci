@@ -6,6 +6,8 @@ resource_types:
 
 # common flags we want to set on all jobs
 job-common-settings: &job-common
+  # I guess we want to prevent multiple builds conflicting with each other
+  max_in_flight: 1
   build_log_retention:
     days: 2
     builds: 20
@@ -247,10 +249,6 @@ jobs:
 
   - name: build-image
     <<: *job-common
-    build_log_retention:
-      days: 2
-      builds: 20
-      minimum_succeeded_builds: 1
     plan:
       - in_parallel:
         - get: ci
