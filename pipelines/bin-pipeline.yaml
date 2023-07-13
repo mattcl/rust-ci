@@ -1,0 +1,294 @@
+resource_types:
+  - name: slack-alert
+    type: registry-image
+    source:
+      repository: arbourd/concourse-slack-alert-resource
+
+# common flags we want to set on all jobs
+job-common-settings: &job-common
+  # I guess we want to prevent multiple builds conflicting with each other
+  max_in_flight: 1
+  build_log_retention:
+    days: 2
+    builds: 20
+    minimum_succeeded_builds: 1
+  on_success:
+    put: notify
+    params:
+      alert_type: success
+  on_failure:
+    put: notify
+    params:
+      alert_type: failed
+  on_abort:
+    put: notify
+    params:
+      alert_type: aborted
+  on_error:
+    put: notify
+    params:
+      alert_type: errored
+
+resources:
+  - name: ci
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/mattcl/rust-ci.git
+      ignore_paths:
+        - 'README.md'
+
+  # the user-specified repo under test
+  - name: ((bin.name))
+    type: git
+    icon: github
+    source:
+      uri: ((bin.repo.uri))
+      ignore_paths:
+        - 'README.md'
+
+  - name: nightly
+    type: registry-image
+    icon: docker
+    source:
+      repository: rustlang/rust
+      tag: nightly-slim
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: slim
+    type: registry-image
+    icon: docker
+    source:
+      repository: mattcl/ci-rust-slim
+      tag: ((rust.version))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: alpine
+    type: registry-image
+    icon: docker
+    source:
+      repository: mattcl/ci-rust-alpine
+      tag: ((rust.version))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: ((bin.name))-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: ((bin.image-repo))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: notify
+    type: slack-alert
+    source:
+      url: ((slack.webhook-url))
+      channel: ((slack.channel))
+      concourse_url: ((server.url))
+
+jobs:
+  - name: stable-alpine
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+        - get: alpine
+          trigger: true
+
+      - task: test
+        image: alpine
+        tags:
+          - internal
+        file: ci/tasks/lint-and-test.yaml
+        input_mapping:
+          repo: ((bin.name))
+        vars:
+          script-path: ((lint-and-test.script-path))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((alpine.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((alpine.cargo.extra-test-flags))"
+
+  - name: stable-slim
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+        - get: slim
+          trigger: true
+
+      - task: test
+        image: slim
+        tags:
+          - internal
+        file: ci/tasks/lint-and-test.yaml
+        input_mapping:
+          repo: ((bin.name))
+        vars:
+          script-path: ((lint-and-test.script-path))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((slim.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((slim.cargo.extra-test-flags))"
+
+  - name: nightly
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+        - get: nightly
+          trigger: true
+
+      - task: test
+        image: nightly
+        tags:
+          - internal
+        file: ci/tasks/lint-and-test.yaml
+        input_mapping:
+          repo: ((bin.name))
+        vars:
+          script-path: ((lint-and-test.script-path))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+          EXTRA_CARGO_BUILD_FLAGS: "((nightly.cargo.extra-build-flags))"
+          EXTRA_CARGO_TEST_FLAGS: "((nightly.cargo.extra-test-flags))"
+          LINT: "0"
+
+  - name: check-msrv
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+          passed:
+            - stable-alpine
+            - stable-slim
+        - get: nightly
+          trigger: false
+
+      - in_parallel:
+        - do:
+          - task: find-min-versions
+            image: nightly
+            tags:
+              - internal
+            file: ci/tasks/min-versions.yaml
+            input_mapping:
+              repo: ((bin.name))
+            params:
+              CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+              CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+          - task: min-dependency-versions
+            tags:
+              - internal
+            file: ci/tasks/msrv.yaml
+            input_mapping:
+              repo: repo
+            vars:
+              script-path: ((msrv.script-path))
+            params:
+              CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+              CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+              UPDATE_DEPS: "0"
+
+        - task: max-dependency-versions
+          tags:
+            - internal
+          file: ci/tasks/msrv.yaml
+          input_mapping:
+            repo: ((bin.name))
+          vars:
+            script-path: ((msrv.script-path))
+          params:
+            CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+            CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+  - name: audit-dependencies
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+          passed:
+            - stable-alpine
+        - get: alpine
+          passed:
+            - stable-alpine
+          trigger: false
+
+      - task: audit-deps
+        image: alpine
+        tags:
+          - internal
+        file: ci/tasks/cargo-audit.yaml
+        input_mapping:
+          repo: ((bin.name))
+        params:
+          CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+          CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+  - name: build-image
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+          passed:
+            - check-msrv
+            - audit-dependencies
+
+      - in_parallel:
+        - task: extract-tags
+          file: ci/tasks/extract-version-tags.yaml
+          input_mapping:
+            repo: ((bin.name))
+          params:
+            IMAGE_REPO: ((bin.image-repo))
+        - task: build
+          privileged: true
+          tags:
+            - internal
+          config:
+            platform: linux
+            image_resource:
+              type: registry-image
+              source:
+                repository: concourse/oci-build-task
+            inputs:
+              - name: ((bin.name))
+            outputs:
+              - name: image
+            params:
+              CONTEXT: ((bin.name))/
+              DOCKERFILE: ((bin.name))/Dockerfile
+              BUILD_ARG_ancalagon_index: ((ancalagon-registry.index))
+              BUILD_ARG_ancalagon_token: ((ancalagon-registry.token))
+            run:
+              path: build
+
+      - put: ((bin.name))-image
+        params:
+          image: image/image.tar
+          additional_tags: image-tags/tags
