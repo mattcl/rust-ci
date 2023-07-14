@@ -1,0 +1,20 @@
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: bitnami/git
+    tag: latest
+
+inputs:
+  - name: ci
+  - name: repo
+
+outputs:
+  - name: repo
+
+params:
+  MESSAGE:
+
+run:
+  dir: repo
+  path: ../ci/scripts/git-commit.sh
