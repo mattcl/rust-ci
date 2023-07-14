@@ -59,7 +59,7 @@ resources:
     icon: github
     source:
       uri: ((gitops.repo.uri))
-      private_key: ((github.private_key))
+      private_key: ((github.private-key))
 
   - name: nightly
     type: registry-image
@@ -100,7 +100,7 @@ resources:
     type: registry-tag
     icon: tag
     source:
-      uri: ((image-repo-api))
+      uri: ((service.image-repo-api))
       pages: 1
       regexp: '^[0-9]+[.][0-9]+[.][0-9]+$'
       semver:
@@ -329,7 +329,7 @@ jobs:
             - build-image
         - get: ((service.name))-gitops
           trigger: false
-        - get: ((service-name))-image-tag
+        - get: ((service.name))-image-tag
           trigger: true
 
       # make the tag available as a var
