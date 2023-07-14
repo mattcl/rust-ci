@@ -347,7 +347,7 @@ jobs:
           IMAGE: "((service.image-repo))"
           TAG: "((.:image-tag))"
 
-      - task: make commit
+      - task: make-commit
         tags:
           - internal
         file: ci/tasks/git-commit.yaml
