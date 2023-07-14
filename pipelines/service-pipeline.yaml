@@ -60,6 +60,7 @@ resources:
     source:
       uri: ((gitops.repo.uri))
       private_key: ((github.private-key))
+      branch: master
 
   - name: nightly
     type: registry-image
