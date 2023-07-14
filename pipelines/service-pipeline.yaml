@@ -334,7 +334,7 @@ jobs:
 
       # make the tag available as a var
       - load_var: image-tag
-        file: ((service-name))-image-tag/tag
+        file: ((service.name))-image-tag/tag
 
       - task: update-tag
         tags:
