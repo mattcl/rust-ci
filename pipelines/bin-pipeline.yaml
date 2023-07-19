@@ -84,6 +84,7 @@ resources:
 
   - name: notify
     type: slack-alert
+    icon: slack
     source:
       url: ((slack.webhook-url))
       channel: ((slack.channel))
