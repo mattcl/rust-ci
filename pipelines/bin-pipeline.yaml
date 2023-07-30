@@ -4,6 +4,12 @@ resource_types:
     source:
       repository: arbourd/concourse-slack-alert-resource
 
+  - name: gitea-package
+    type: registry-image
+    source:
+      repository: mattcl/concourse-gitea-package
+      tag: "0.2.0"
+
 # common flags we want to set on all jobs
 job-common-settings: &job-common
   # I guess we want to prevent multiple builds conflicting with each other
@@ -73,6 +79,17 @@ resources:
       tag: ((rust.version))
       username: ((dockerhub.user))
       password: ((dockerhub.token))
+
+  - name: gitea-package
+    type: gitea-package
+    icon: package-up
+    source:
+      uri: ((gitea-package.uri))
+      owner: ((gitea-package.owner))
+      token: ((gitea-package.token))
+      package: ((bin.name))
+    tags:
+      - internal
 
   - name: ((bin.name))-image
     type: registry-image
@@ -247,6 +264,81 @@ jobs:
         params:
           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+
+  - name: build-release
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+          passed:
+            - check-msrv
+            - audit-dependencies
+        - get: alpine
+          passed:
+            - stable-alpine
+          trigger: false
+        - get: slim
+          passed:
+            - stable-slim
+          trigger: false
+
+      - in_parallel:
+        - task: gnu
+          image: slim
+          tags:
+            - internal
+          file: ci/tasks/build-release.yaml
+          input_mapping:
+            repo: ((bin.name))
+          output_mapping:
+            release: gnu-release
+          vars:
+            script-path: ((build-release.script-path))
+          params:
+            CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+            CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+            # TODO: support multiple files
+            BIN_NAME: ((bin.bin-name))
+            TARGET: x86_64-unknown-linux-gnu
+
+        - task: musl
+          image: alpine
+          tags:
+            - internal
+          file: ci/tasks/build-release.yaml
+          input_mapping:
+            repo: ((bin.name))
+          output_mapping:
+            release: musl-release
+          vars:
+            script-path: ((build-release.script-path))
+          params:
+            CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+            CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+            # TODO: support multiple files
+            BIN_NAME: ((bin.bin-name))
+            TARGET: x86_64-unknown-linux-musl
+
+      - load_var: bin-version
+        file: gnu-release/VERSION
+
+      - load_var: gnu-file
+        file: gnu-release/ARCHIVE_NAME
+
+      - load_var: musl-file
+        file: musl-release/ARCHIVE_NAME
+
+      - put: gitea-package
+        tags:
+          - internal
+        params:
+          version: ((.:bin-version))
+          files:
+            - gnu-release/((.:gnu-file))
+            - musl-release/((.:musl-file))
 
   - name: build-image
     <<: *job-common
