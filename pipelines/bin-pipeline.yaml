@@ -334,6 +334,9 @@ jobs:
       - put: gitea-package
         tags:
           - internal
+        inputs:
+          - gnu-release
+          - musl-release
         params:
           version: ((.:bin-version))
           files:
