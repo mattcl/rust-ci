@@ -91,6 +91,14 @@ resources:
     tags:
       - internal
 
+  - name: ((bin.name))-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: ((bin.image-repo))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
   - name: notify
     type: slack-alert
     icon: slack
@@ -334,3 +342,49 @@ jobs:
           files:
             - gnu-release/((.:gnu-file))
             - musl-release/((.:musl-file))
+
+  - name: build-image
+    <<: *job-common
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: ((bin.name))
+          trigger: true
+          passed:
+            - check-msrv
+            - audit-dependencies
+
+      - in_parallel:
+        - task: extract-tags
+          file: ci/tasks/extract-version-tags.yaml
+          input_mapping:
+            repo: ((bin.name))
+          params:
+            IMAGE_REPO: ((bin.image-repo))
+        - task: build
+          privileged: true
+          tags:
+            - internal
+          config:
+            platform: linux
+            image_resource:
+              type: registry-image
+              source:
+                repository: concourse/oci-build-task
+            inputs:
+              - name: ((bin.name))
+            outputs:
+              - name: image
+            params:
+              CONTEXT: ((bin.name))/
+              DOCKERFILE: ((bin.name))/Dockerfile
+              BUILD_ARG_ancalagon_index: ((ancalagon-registry.index))
+              BUILD_ARG_ancalagon_token: ((ancalagon-registry.token))
+            run:
+              path: build
+
+      - put: ((bin.name))-image
+        params:
+          image: image/image.tar
+          additional_tags: image-tags/tags
