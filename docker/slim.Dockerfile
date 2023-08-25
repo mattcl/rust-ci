@@ -6,7 +6,7 @@ RUN wget https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv0.1
     tar -xvf cargo-audit-x86_64-unknown-linux-musl-v0.17.6.tgz && \
     mv cargo-audit-x86_64-unknown-linux-musl-v0.17.6/cargo-audit /usr/local/bin/
 
-FROM rust:1.71-slim
+FROM rust:1.72-slim
 RUN rustup component add rustfmt && \
     rustup component add clippy
 
