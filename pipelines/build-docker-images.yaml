@@ -29,6 +29,15 @@ resources:
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
+  - name: nightly-slim
+    type: registry-image
+    icon: docker
+    source:
+      repository: rustlang/rust
+      tag: nightly-slim
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
   - name: output-alpine
     type: registry-image
     source:
@@ -41,6 +50,14 @@ resources:
     type: registry-image
     source:
       repository: mattcl/ci-rust-slim
+      tag: ((rust.version))
+      username: ((dockerhub.user))
+      password: ((dockerhub.token))
+
+  - name: output-nightly
+    type: registry-image
+    source:
+      repository: mattcl/ci-rust-nightly
       tag: ((rust.version))
       username: ((dockerhub.user))
       password: ((dockerhub.token))
@@ -144,6 +161,59 @@ jobs:
         params:
           image: image/image.tar
           additional_tags: stable-slim/tag
+
+    on_success:
+      put: notify
+      params:
+        alert_type: success
+    on_failure:
+      put: notify
+      params:
+        alert_type: failed
+    on_abort:
+      put: notify
+      params:
+        alert_type: aborted
+    on_error:
+      put: notify
+      params:
+        alert_type: errored
+
+  - name: nightly
+    build_log_retention:
+      days: 2
+      builds: 20
+      minimum_succeeded_builds: 1
+    plan:
+      - in_parallel:
+        - get: ci
+          trigger: false
+        - get: nightly-slim
+          trigger: true
+          params:
+            skip_download: true
+
+      - task: build
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: ci
+          outputs:
+            - name: image
+          params:
+            CONTEXT: ci/docker
+            DOCKERFILE: ci/docker/nightly.Dockerfile
+          run:
+            path: build
+
+      - put: output-nightly
+        params:
+          image: image/image.tar
 
     on_success:
       put: notify
