@@ -58,7 +58,7 @@ resources:
     type: registry-image
     source:
       repository: mattcl/ci-rust-nightly
-      tag: ((rust.version))
+      tag: latest
       username: ((dockerhub.user))
       password: ((dockerhub.token))
 
