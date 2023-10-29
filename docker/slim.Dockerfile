@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim as fetcher
+FROM debian:bookworm-slim as fetcher
 RUN apt-get update && \
     apt-get install -y wget
 
@@ -11,7 +11,7 @@ RUN wget https://github.com/casey/just/releases/download/1.15.0/just-1.15.0-x86_
     chmod +x just && \
     mv just /usr/local/bin/
 
-FROM rust:1.73-slim-bullseye
+FROM rust:1.73-slim
 RUN apt-get update && \
     apt-get install -y make perl && \
     rustup component add rustfmt && \
