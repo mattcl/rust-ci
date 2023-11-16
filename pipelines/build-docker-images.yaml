@@ -100,6 +100,7 @@ jobs:
           params:
             CONTEXT: ci/docker
             DOCKERFILE: ci/docker/alpine.Dockerfile
+            BUILD_ARG_RUST_TAG: "((rust.version))-alpine"
           run:
             path: build
 
@@ -154,6 +155,7 @@ jobs:
           params:
             CONTEXT: ci/docker
             DOCKERFILE: ci/docker/slim.Dockerfile
+            BUILD_ARG_RUST_TAG: "((rust.version))-slim"
           run:
             path: build
 

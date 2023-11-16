@@ -1,4 +1,6 @@
-FROM rust:1.73-alpine
+ARG RUST_TAG=1.74-alpine
+FROM rust:$RUST_TAG
+ARG RUST_TAG=1.74-alpine
 
 RUN apk add --no-cache musl-dev cargo-audit make perl just && \
     rustup component add rustfmt && \
