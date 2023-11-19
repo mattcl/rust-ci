@@ -16,7 +16,7 @@ FROM rust:1.74-slim
 ARG RUST_TAG=1.74-slim
 
 RUN apt-get update && \
-    apt-get install -y make perl && \
+    apt-get install -y wget make perl && \
     rustup component add rustfmt && \
     rustup component add clippy
 

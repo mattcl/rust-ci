@@ -13,7 +13,7 @@ RUN wget https://github.com/casey/just/releases/download/1.15.0/just-1.15.0-x86_
 
 FROM rustlang/rust:nightly-slim
 RUN apt-get update && \
-    apt-get install -y make perl && \
+    apt-get install -y wget make perl && \
     rustup component add rustfmt && \
     rustup component add clippy
 
