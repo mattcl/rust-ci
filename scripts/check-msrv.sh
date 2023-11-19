@@ -8,7 +8,7 @@ set -ex
 # So what we're going to do is determine the minimum version that's declared in
 # the Cargo.toml at the root of the repository and explicitly constrain
 # `cargo msrv` to that version using `--min` and `--max`
-apt-get install -y wget
+apt-get update && apt-get install -y wget
 
 rust_version=$(grep 'rust-version' Cargo.toml | cut -d '"' -f 2)
 
