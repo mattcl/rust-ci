@@ -358,7 +358,7 @@ jobs:
         output_mapping:
           repo: gitops
         params:
-          COMMIT_MESSAGE: "ops: [CD] Automated update of ((gitops.overlay)) to ((.:image-tag))"
+          COMMIT_MESSAGE: "ops: [CD] Auto update ((gitops.overlay)) to ((service.image-repo)):((.:image-tag))"
 
       - put: ((service.name))-gitops
         params:
