@@ -12,7 +12,7 @@ RUN wget https://github.com/casey/just/releases/download/1.15.0/just-1.15.0-x86_
     mv just /usr/local/bin/
 
 ARG RUST_TAG=1.74-slim
-FROM rust:$RUST_TAG
+FROM rust:1.74-slim
 ARG RUST_TAG=1.74-slim
 
 RUN apt-get update && \
