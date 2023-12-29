@@ -1,3 +1,4 @@
+ARG RUST_TAG=1.74-slim
 FROM debian:bookworm-slim as fetcher
 RUN apt-get update && \
     apt-get install -y wget
@@ -11,7 +12,6 @@ RUN wget https://github.com/casey/just/releases/download/1.15.0/just-1.15.0-x86_
     chmod +x just && \
     mv just /usr/local/bin/
 
-ARG RUST_TAG=1.74-slim
 FROM rust:$RUST_TAG
 ARG RUST_TAG=1.74-slim
 
