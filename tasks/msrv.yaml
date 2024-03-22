@@ -2,8 +2,8 @@ platform: linux
 image_resource:
   type: registry-image
   source:
-    repository: foresterre/cargo-msrv
-    tag: "sha-78de76f"
+    repository: ghcr.io/foresterre/cargo-msrv
+    tag: "sha-e60ddcd"
 
 inputs:
   - name: ci
