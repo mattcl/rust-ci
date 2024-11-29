@@ -1,4 +1,4 @@
-ARG RUST_TAG=1.74-slim
+ARG RUST_TAG=1.82-slim
 FROM debian:bookworm-slim as fetcher
 RUN apt-get update && \
     apt-get install -y wget
@@ -13,7 +13,7 @@ RUN wget https://github.com/casey/just/releases/download/1.15.0/just-1.15.0-x86_
     mv just /usr/local/bin/
 
 FROM rust:$RUST_TAG
-ARG RUST_TAG=1.74-slim
+ARG RUST_TAG=1.82-slim
 
 RUN apt-get update && \
     apt-get install -y wget make perl && \
