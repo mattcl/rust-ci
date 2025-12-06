@@ -18,7 +18,8 @@ ARG RUST_TAG=1.91-slim
 RUN apt-get update && \
     apt-get install -y wget make perl && \
     rustup component add rustfmt && \
-    rustup component add clippy
+    rustup component add clippy && \
+    rustup target add x86_64-unknown-linux-musl
 
 COPY --from=fetcher /usr/local/bin/cargo-audit /usr/local/bin/cargo-audit
 COPY --from=fetcher /usr/local/bin/just /usr/local/bin/just
