@@ -16,7 +16,7 @@ FROM rust:$RUST_TAG
 ARG RUST_TAG=1.91-slim
 
 RUN apt-get update && \
-    apt-get install -y wget make perl && \
+    apt-get install -y wget make perl musl-tools && \
     rustup component add rustfmt && \
     rustup component add clippy && \
     rustup target add x86_64-unknown-linux-musl
