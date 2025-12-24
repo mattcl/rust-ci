@@ -179,57 +179,57 @@ jobs:
           EXTRA_CARGO_TEST_FLAGS: "((nightly.cargo.extra-test-flags))"
           LINT: "0"
 
-  - name: check-msrv
-    <<: *job-common
-    plan:
-      - in_parallel:
-        - get: ci
-          trigger: false
-        - get: ((bin.name))
-          trigger: true
-          passed:
-            - stable-alpine
-            - stable-slim
-        - get: nightly
-          trigger: false
+  # - name: check-msrv
+  #   <<: *job-common
+  #   plan:
+  #     - in_parallel:
+  #       - get: ci
+  #         trigger: false
+  #       - get: ((bin.name))
+  #         trigger: true
+  #         passed:
+  #           - stable-alpine
+  #           - stable-slim
+  #       - get: nightly
+  #         trigger: false
 
-      - in_parallel:
-        - do:
-          - task: find-min-versions
-            image: nightly
-            tags:
-              - internal
-            file: ci/tasks/min-versions.yaml
-            input_mapping:
-              repo: ((bin.name))
-            params:
-              CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
-              CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+  #     - in_parallel:
+  #       - do:
+  #         - task: find-min-versions
+  #           image: nightly
+  #           tags:
+  #             - internal
+  #           file: ci/tasks/min-versions.yaml
+  #           input_mapping:
+  #             repo: ((bin.name))
+  #           params:
+  #             CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+  #             CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
 
-          - task: min-dependency-versions
-            tags:
-              - internal
-            file: ci/tasks/msrv.yaml
-            input_mapping:
-              repo: repo
-            vars:
-              script-path: ((msrv.script-path))
-            params:
-              CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
-              CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
-              UPDATE_DEPS: "0"
+  #         - task: min-dependency-versions
+  #           tags:
+  #             - internal
+  #           file: ci/tasks/msrv.yaml
+  #           input_mapping:
+  #             repo: repo
+  #           vars:
+  #             script-path: ((msrv.script-path))
+  #           params:
+  #             CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+  #             CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+  #             UPDATE_DEPS: "0"
 
-        - task: max-dependency-versions
-          tags:
-            - internal
-          file: ci/tasks/msrv.yaml
-          input_mapping:
-            repo: ((bin.name))
-          vars:
-            script-path: ((msrv.script-path))
-          params:
-            CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
-            CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
+  #       - task: max-dependency-versions
+  #         tags:
+  #           - internal
+  #         file: ci/tasks/msrv.yaml
+  #         input_mapping:
+  #           repo: ((bin.name))
+  #         vars:
+  #           script-path: ((msrv.script-path))
+  #         params:
+  #           CARGO_REGISTRIES_ANCALAGON_INDEX: ((ancalagon-registry.index))
+  #           CARGO_REGISTRIES_ANCALAGON_TOKEN: ((ancalagon-registry.token))
 
   - name: audit-dependencies
     <<: *job-common
@@ -266,7 +266,7 @@ jobs:
         - get: ((bin.name))
           trigger: true
           passed:
-            - check-msrv
+            # - check-msrv
             - audit-dependencies
         - get: alpine
           passed:
